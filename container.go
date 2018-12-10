@@ -6,9 +6,10 @@ import (
 	"reflect"
 )
 
-type FactoryWithContainerFunction func(ContainerInterface) interface{}
-type FactoryFunction func() interface{}
+type factoryWithContainerFunction func(ContainerInterface) interface{}
+type factoryFunction func() interface{}
 
+// ContainerInterface はコンテナのインターフェース
 type ContainerInterface interface {
 	Define(name string, value interface{}) error
 	GetInstance(name string) interface{}
@@ -17,23 +18,24 @@ type ContainerInterface interface {
 
 type container struct {
 	instances                     map[string]interface{}
-	factoryWithContainerFunctions map[string]FactoryWithContainerFunction
-	factoryFunctions              map[string]FactoryFunction
+	factoryWithContainerFunctions map[string]factoryWithContainerFunction
+	factoryFunctions              map[string]factoryFunction
 }
 
+// NewContainer はコンテナのコンストラクタ
 func NewContainer() ContainerInterface {
 	return &container{
 		instances:                     make(map[string]interface{}),
-		factoryWithContainerFunctions: make(map[string]FactoryWithContainerFunction),
-		factoryFunctions:              make(map[string]FactoryFunction),
+		factoryWithContainerFunctions: make(map[string]factoryWithContainerFunction),
+		factoryFunctions:              make(map[string]factoryFunction),
 	}
 }
 
-func (this *container) Define(name string, value interface{}) error {
+func (c *container) Define(name string, value interface{}) error {
 	functionReflValue := reflect.ValueOf(value)
 	functionReflType := functionReflValue.Type()
 	if functionReflType.Kind() != reflect.Func {
-		this.instances[name] = value
+		c.instances[name] = value
 		return nil
 	}
 
@@ -41,15 +43,15 @@ func (this *container) Define(name string, value interface{}) error {
 	numOut := functionReflType.NumOut()
 
 	if numOut != 1 {
-		return errors.New("factory function's return value must be single argument.")
+		return errors.New("factory function's return value must be single argument")
 	}
 
 	if functionReflType.Out(0).Kind() != reflect.Interface {
-		return errors.New("factory function's return type must be interface.")
+		return errors.New("factory function's return type must be interface")
 	}
 
 	if numIn == 0 {
-		this.factoryFunctions[name] = func() interface{} {
+		c.factoryFunctions[name] = func() interface{} {
 			return functionReflValue.Call([]reflect.Value{})[0].Interface()
 		}
 		return nil
@@ -58,34 +60,34 @@ func (this *container) Define(name string, value interface{}) error {
 	if numIn == 1 {
 		targetType := reflect.TypeOf((*ContainerInterface)(nil)).Elem()
 		if functionReflType.In(0).Implements(targetType) {
-			this.factoryWithContainerFunctions[name] = func(c ContainerInterface) interface{} {
+			c.factoryWithContainerFunctions[name] = func(c ContainerInterface) interface{} {
 				return functionReflValue.Call([]reflect.Value{reflect.ValueOf(c)})[0].Interface()
 			}
 			return nil
 		}
-		return errors.New("factory function requires ContainerInterface type parameter.")
+		return errors.New("factory function requires ContainerInterface type parameter")
 	}
 
-	return errors.New("factory function's return type must be interface.")
+	return errors.New("factory function's return type must be interface")
 }
 
 // GetInstance gets an instance from container
-func (this *container) GetInstance(name string) interface{} {
-	if instance, ok := this.instances[name]; ok {
+func (c *container) GetInstance(name string) interface{} {
+	if instance, ok := c.instances[name]; ok {
 		return instance
 	}
 
-	if factoryWithContainerFunction, ok := this.factoryWithContainerFunctions[name]; ok {
-		instance := factoryWithContainerFunction(this)
+	if factoryWithContainerFunction, ok := c.factoryWithContainerFunctions[name]; ok {
+		instance := factoryWithContainerFunction(c)
 
-		this.instances[name] = instance
+		c.instances[name] = instance
 		return instance
 	}
 
-	if factoryFunction, ok := this.factoryFunctions[name]; ok {
+	if factoryFunction, ok := c.factoryFunctions[name]; ok {
 		instance := factoryFunction()
 
-		this.instances[name] = instance
+		c.instances[name] = instance
 		return instance
 	}
 
@@ -93,12 +95,12 @@ func (this *container) GetInstance(name string) interface{} {
 }
 
 // NewInstance creates a new instance
-func (this *container) NewInstance(name string) interface{} {
-	if factoryWithContainerFunction, ok := this.factoryWithContainerFunctions[name]; ok {
-		return factoryWithContainerFunction(this)
+func (c *container) NewInstance(name string) interface{} {
+	if factoryWithContainerFunction, ok := c.factoryWithContainerFunctions[name]; ok {
+		return factoryWithContainerFunction(c)
 	}
 
-	if factoryFunction, ok := this.factoryFunctions[name]; ok {
+	if factoryFunction, ok := c.factoryFunctions[name]; ok {
 		return factoryFunction()
 	}
 
