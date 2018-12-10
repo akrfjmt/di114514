@@ -6,31 +6,31 @@ import (
 	"reflect"
 )
 
-type FactoryWithContainerFunction func(ContainerInterface) (interface{})
-type FactoryFunction func() (interface{})
+type FactoryWithContainerFunction func(ContainerInterface) interface{}
+type FactoryFunction func() interface{}
 
 type ContainerInterface interface {
 	Define(name string, value interface{}) error
-	GetInstance(name string) (interface{})
-	NewInstance(name string) (interface{})
+	GetInstance(name string) interface{}
+	NewInstance(name string) interface{}
 }
 
 type container struct {
-	instances                             map[string]interface{}
-	factoryWithContainerFunctions         map[string]FactoryWithContainerFunction
-	factoryFunctions                      map[string]FactoryFunction
+	instances                     map[string]interface{}
+	factoryWithContainerFunctions map[string]FactoryWithContainerFunction
+	factoryFunctions              map[string]FactoryFunction
 }
 
 func NewContainer() ContainerInterface {
 	return &container{
-		instances:                             make(map[string]interface{}),
-		factoryWithContainerFunctions:         make(map[string]FactoryWithContainerFunction),
-		factoryFunctions:                      make(map[string]FactoryFunction),
+		instances:                     make(map[string]interface{}),
+		factoryWithContainerFunctions: make(map[string]FactoryWithContainerFunction),
+		factoryFunctions:              make(map[string]FactoryFunction),
 	}
 }
 
 func (this *container) Define(name string, value interface{}) error {
-	functionReflValue := reflect.ValueOf(value);
+	functionReflValue := reflect.ValueOf(value)
 	functionReflType := functionReflValue.Type()
 	if functionReflType.Kind() != reflect.Func {
 		this.instances[name] = value
@@ -72,21 +72,21 @@ func (this *container) Define(name string, value interface{}) error {
 // GetInstance gets an instance from container
 func (this *container) GetInstance(name string) interface{} {
 	if instance, ok := this.instances[name]; ok {
-		return instance;
+		return instance
 	}
 
 	if factoryWithContainerFunction, ok := this.factoryWithContainerFunctions[name]; ok {
 		instance := factoryWithContainerFunction(this)
 
-		this.instances[name] = instance;
-		return instance;
+		this.instances[name] = instance
+		return instance
 	}
 
 	if factoryFunction, ok := this.factoryFunctions[name]; ok {
 		instance := factoryFunction()
 
-		this.instances[name] = instance;
-		return instance;
+		this.instances[name] = instance
+		return instance
 	}
 
 	return nil

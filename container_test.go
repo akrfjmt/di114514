@@ -57,7 +57,7 @@ func TestDefineString(t *testing.T) {
 
 func TestDefine(t *testing.T) {
 	c := NewContainer()
-	err := c.Define("runes10", func() (interface{}) {
+	err := c.Define("runes10", func() interface{} {
 		return randStringRunes(10)
 	})
 	if err != nil {
@@ -91,16 +91,16 @@ func TestDefine(t *testing.T) {
 
 func TestDefineWithContainer(t *testing.T) {
 	c := NewContainer()
-	err := c.Define("runes10", func() (interface{}) {
+	err := c.Define("runes10", func() interface{} {
 		return randStringRunes(10)
 	})
 	if err != nil {
 		t.Fail()
 	}
 
-	err = c.Define("runes20", func(c ContainerInterface) (interface{}) {
+	err = c.Define("runes20", func(c ContainerInterface) interface{} {
 		if runes10, ok := c.GetInstance("runes10").(string); ok {
-			return "[[[[[" + runes10 + "]]]]]";
+			return "[[[[[" + runes10 + "]]]]]"
 		}
 
 		return nil
@@ -111,7 +111,7 @@ func TestDefineWithContainer(t *testing.T) {
 
 	if runes10, ok := c.GetInstance("runes10").(string); ok {
 		if runes20, ok := c.GetInstance("runes20").(string); ok {
-			if "[[[[[" + runes10 + "]]]]]" != runes20 {
+			if "[[[[["+runes10+"]]]]]" != runes20 {
 				t.Fail()
 			}
 		} else {
