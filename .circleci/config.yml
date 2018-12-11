@@ -9,4 +9,13 @@ jobs:
     steps:
       - checkout
       - run: go test -v ./...
-      - run: sh codecov.sh
+      - run: go get github.com/pierrre/gotestcover
+      - run:
+          command: |
+            if [ "$CODECOV_TOKEN" != "" ]; then
+              gotestcover -coverprofile=coverage.txt ./...
+              curl -s https://codecov.io/bash | bash -s --
+            else
+              echo "please specify \$CODECOV_TOKEN"
+              echo "https://github.com/cainus/codecov.io/blob/master/README.md#upload-repo-tokens"
+            fi
