@@ -8,14 +8,21 @@ jobs:
 
     steps:
       - checkout
-      - run: go test -v ./...
-      - run: go get github.com/pierrre/gotestcover
+      - run: go test -v -race -coverprofile coverage.txt -covermode=atomic ./...
       - run:
           command: |
             if [ "$CODECOV_TOKEN" != "" ]; then
-              gotestcover -coverprofile=coverage.txt ./...
               curl -s https://codecov.io/bash | bash -s --
             else
               echo "please specify \$CODECOV_TOKEN"
-              echo "https://github.com/cainus/codecov.io/blob/master/README.md#upload-repo-tokens"
+              echo "https://github.com/codecov/codecov-node#upload-repo-tokens"
+            fi
+      - run:
+          command: |
+            if [ "$COVERALLS_TOKEN" != "" ]; then
+              go get github.com/mattn/goveralls
+              goveralls -coverprofile=coverage.txt -covermode=count -service=circle-ci -repotoken $COVERALLS_TOKEN
+            else
+              echo "please specify \$COVERALLS_TOKEN"
+              echo "https://coveralls.io/"
             fi
