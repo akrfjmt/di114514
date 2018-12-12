@@ -38,7 +38,7 @@ jobs:
           command: |
             if [ "$COVERALLS_TOKEN" != "" ]; then
               go get github.com/mattn/goveralls
-              goveralls -coverprofile=coverage.txt -covermode=count -service=circle-ci -repotoken $COVERALLS_TOKEN
+              goveralls -coverprofile=coverage.txt -covermode=atomic -service=circle-ci -repotoken $COVERALLS_TOKEN
             else
               echo "please specify \$COVERALLS_TOKEN"
               echo "https://coveralls.io/"
