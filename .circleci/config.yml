@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.11.2
 
@@ -43,3 +43,9 @@ jobs:
               echo "please specify \$COVERALLS_TOKEN"
               echo "https://coveralls.io/"
             fi
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
