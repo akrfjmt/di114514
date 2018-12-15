@@ -1,4 +1,10 @@
 version: 2.1
+
+workflows:
+  test:
+    jobs:
+      - test
+
 jobs:
   test:
     docker:
@@ -43,9 +49,3 @@ jobs:
               echo "please specify \$COVERALLS_TOKEN"
               echo "https://coveralls.io/"
             fi
-
-workflows:
-  version: 2
-  test:
-    jobs:
-      - test
