@@ -1,6 +1,12 @@
 version: 2.1
+
+workflows:
+  test:
+    jobs:
+      - test
+
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.11.2
 
@@ -15,31 +21,21 @@ jobs:
               chmod +x cc-test-reporter
               ./cc-test-reporter before-build
             fi
-      - run:
-          command: |
+
             go test -v -race -coverprofile coverage.txt -covermode=atomic ./...
-            echo 'export TEST_EXIT_CODE="$?"' >> $BASH_ENV
-      - run:
-          command: |
+            TEST_EXIT_CODE="$?"
+
             if [ "$CC_TEST_REPORTER_ID" != "" ]; then
               cp -a coverage.txt c.out
               ./cc-test-reporter after-build --coverage-input-type gocov --exit-code $TEST_EXIT_CODE
               rm c.out
             fi
-      - run:
-          command: |
+
             if [ "$CODECOV_TOKEN" != "" ]; then
               curl -s https://codecov.io/bash | bash -s --
-            else
-              echo "please specify \$CODECOV_TOKEN"
-              echo "https://github.com/codecov/codecov-node#upload-repo-tokens"
             fi
-      - run:
-          command: |
+
             if [ "$COVERALLS_TOKEN" != "" ]; then
               go get github.com/mattn/goveralls
               goveralls -coverprofile=coverage.txt -covermode=atomic -service=circle-ci -repotoken $COVERALLS_TOKEN
-            else
-              echo "please specify \$COVERALLS_TOKEN"
-              echo "https://coveralls.io/"
             fi
