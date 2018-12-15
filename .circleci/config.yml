@@ -3,10 +3,10 @@ version: 2.1
 workflows:
   test:
     jobs:
-      - test
+      - build
 
 jobs:
-  test:
+  build:
     docker:
       - image: circleci/golang:1.11.2
 
