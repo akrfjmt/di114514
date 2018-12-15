@@ -23,7 +23,7 @@ jobs:
             fi
 
             go test -v -race -coverprofile coverage.txt -covermode=atomic ./...
-            echo 'export TEST_EXIT_CODE="$?"' >> $BASH_ENV
+            TEST_EXIT_CODE="$?"
 
             if [ "$CC_TEST_REPORTER_ID" != "" ]; then
               cp -a coverage.txt c.out
